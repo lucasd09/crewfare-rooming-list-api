@@ -1,11 +1,17 @@
-import { pgTable, integer, varchar, serial } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { pgTable, integer, varchar, date } from "drizzle-orm/pg-core";
+import { roomingListBooking } from "./rooming-list-booking.schema";
 
 export const bookingsTable = pgTable("booking", {
-  bookingId: serial("booking_id").primaryKey(),
+  bookingId: integer("booking_id").primaryKey(),
   hotelId: integer("hotel_id").notNull(),
   eventId: integer("event_id").notNull(),
   guestName: varchar("guest_name"),
   guestPhoneNumber: varchar("guest_phone_number"),
-  checkInDate: varchar("check_in_date"),
-  checkOutDate: varchar("check_out_date"),
+  checkInDate: date("check_in_date"),
+  checkOutDate: date("check_out_date"),
 });
+
+export const bookingsRelations = relations(bookingsTable, ({ many }) => ({
+  roomingListBooking: many(roomingListBooking),
+}));

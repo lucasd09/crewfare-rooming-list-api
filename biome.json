@@ -42,7 +42,7 @@
       "performance": {
         "noDelete": "error",
         "noAccumulatingSpread": "error",
-        "noBarrelFile": "error"
+        "noBarrelFile": "off"
       },
       "style": {
         "noNonNullAssertion": "error",
