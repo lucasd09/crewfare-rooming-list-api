@@ -16,8 +16,13 @@ export class RoomingListsController {
   constructor(private readonly roomingListsService: RoomingListsService) {}
 
   @Post()
-  create(@Body() createRoomingListDto: CreateRoomingListDto) {
-    return this.roomingListsService.create(createRoomingListDto);
+  create(@Body() data: CreateRoomingListDto) {
+    return this.roomingListsService.create(data);
+  }
+
+  @Post("bulk")
+  createBulk(@Body() data: CreateRoomingListDto[]) {
+    return this.roomingListsService.createBulk(data);
   }
 
   @Get()

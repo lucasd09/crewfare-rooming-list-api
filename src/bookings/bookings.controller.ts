@@ -16,8 +16,13 @@ export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
   @Post()
-  create(@Body() createBookingDto: CreateBookingDto) {
-    return this.bookingsService.create(createBookingDto);
+  create(@Body() data: CreateBookingDto) {
+    return this.bookingsService.create(data);
+  }
+
+  @Post("bulk")
+  createBulk(@Body() data: CreateBookingDto[]) {
+    return this.bookingsService.createBulk(data);
   }
 
   @Get()
@@ -30,13 +35,18 @@ export class BookingsController {
     return this.bookingsService.findOne(+id);
   }
 
+  @Get("/byRoomingListId/:id")
+  findByRoomingListId(@Param("id") id: string) {
+    return this.bookingsService.findByRoomingListId(+id);
+  }
+
   @Patch(":id")
-  update(@Param("id") id: string, @Body() updateBookingDto: UpdateBookingDto) {
-    return this.bookingsService.update(+id, updateBookingDto);
+  update(@Param("id") id: string, @Body() data: UpdateBookingDto) {
+    return this.bookingsService.update(+id, data);
   }
 
   @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.bookingsService.remove(+id);
+  remove(@Param("id") data: number) {
+    return this.bookingsService.remove(data);
   }
 }

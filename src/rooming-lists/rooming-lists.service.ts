@@ -4,7 +4,7 @@ import { UpdateRoomingListDto } from "./dto/update-rooming-list.dto";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DATABASE_CONNECTION } from "src/database/database-connection";
 import * as schema from "../database/schemas";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 @Injectable()
 export class RoomingListsService {
@@ -22,8 +22,30 @@ export class RoomingListsService {
     return createdRoomingList;
   }
 
+  createBulk(data: CreateRoomingListDto[]) {
+    const createdRoomingList = this.db
+      .insert(schema.roomingListsTable)
+      .values(data)
+      .returning();
+
+    return createdRoomingList;
+  }
+
   findAll() {
-    return this.db.query.roomingListsTable.findMany();
+    const { roomingListsTable } = schema;
+
+    const data = this.db
+      .select({
+        eventId: roomingListsTable.eventId,
+        eventName: roomingListsTable.eventName,
+        roomingCount: sql<number>`cast(coalesce(count(${roomingListsTable.roomingListId}), 0) as int)`,
+        roomingLists: sql`coalesce(json_agg(row_to_json(rooming_list.*)), '[]'::json)`,
+      })
+      .from(roomingListsTable)
+      .groupBy(roomingListsTable.eventId, roomingListsTable.eventName)
+      .orderBy(roomingListsTable.eventId);
+
+    return data;
   }
 
   findOne(id: number) {

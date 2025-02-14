@@ -10,7 +10,7 @@ export const roomingListsTable = pgTable("rooming_list", {
   rfpName: varchar("rfp_name"),
   cutOffDate: varchar("cut_off_date"),
   status: varchar("status"),
-  agreement_type: varchar("agreement_type"),
+  agreementType: varchar("agreement_type"),
 });
 
 export const roomingListsRelations = relations(
