@@ -5,6 +5,7 @@ import { DATABASE_CONNECTION } from "src/database/database-connection";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "../database/schemas";
 import { eq, inArray, sql } from "drizzle-orm";
+import { Booking } from "./entities/booking.entity";
 
 @Injectable()
 export class BookingsService {
@@ -13,8 +14,8 @@ export class BookingsService {
     private readonly db: NodePgDatabase<typeof schema>,
   ) {}
 
-  create(data: CreateBookingDto) {
-    const createdBooking = this.db
+  async create(data: CreateBookingDto) {
+    const createdBooking = await this.db
       .insert(schema.bookingsTable)
       .values(data)
       .returning();
@@ -22,8 +23,8 @@ export class BookingsService {
     return createdBooking;
   }
 
-  createBulk(data: CreateBookingDto[]) {
-    const createdBookings = this.db
+  async createBulk(data: CreateBookingDto[]) {
+    const createdBookings = await this.db
       .insert(schema.bookingsTable)
       .values(data)
       .returning();
@@ -31,8 +32,10 @@ export class BookingsService {
     return createdBookings;
   }
 
-  findAll() {
-    return this.db.query.bookingsTable.findMany();
+  async findAll() {
+    const data = await this.db.query.bookingsTable.findMany();
+
+    return data;
   }
 
   findOne(id: number) {
@@ -46,10 +49,20 @@ export class BookingsService {
 
     const [data] = await this.db
       .select({
-        minDate: sql`MIN(${bookingsTable.checkInDate})`,
-        maxDate: sql`MAX(${bookingsTable.checkOutDate})`,
-        bookingsCount: sql`COUNT(${bookingsTable.bookingId})`,
-        bookings: sql`json_agg(${bookingsTable}.*)`,
+        minDate: sql<string>`MIN(${bookingsTable.checkInDate})`,
+        maxDate: sql<string>`MAX(${bookingsTable.checkOutDate})`,
+        bookingsCount: sql<number>`COUNT(${bookingsTable.bookingId})`,
+        bookings: sql<Booking[]>`json_agg(
+          json_build_object(
+            'bookingId', ${bookingsTable.bookingId},
+            'hotelId', ${bookingsTable.hotelId},
+            'eventId', ${bookingsTable.eventId},
+            'guestName', ${bookingsTable.guestName},
+            'guestPhoneNumber', ${bookingsTable.guestPhoneNumber},
+            'checkInDate', ${bookingsTable.checkInDate},
+            'checkOutDate', ${bookingsTable.checkOutDate}
+          )
+        )`,
       })
       .from(bookingsTable)
       .leftJoin(
@@ -66,8 +79,8 @@ export class BookingsService {
     return data;
   }
 
-  update(id: number, data: UpdateBookingDto) {
-    const updatedBooking = this.db
+  async update(id: number, data: UpdateBookingDto) {
+    const updatedBooking = await this.db
       .update(schema.bookingsTable)
       .set(data)
       .where(eq(schema.bookingsTable.bookingId, id));

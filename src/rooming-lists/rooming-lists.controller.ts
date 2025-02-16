@@ -47,4 +47,9 @@ export class RoomingListsController {
   remove(@Param("id") id: string) {
     return this.roomingListsService.remove(+id);
   }
+
+  @Post("deleteBulk")
+  async deleteRoomingLists(@Body() ids: number[]) {
+    return this.roomingListsService.removeBulk(ids);
+  }
 }

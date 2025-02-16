@@ -8,8 +8,12 @@ export const roomingListBooking = pgTable(
   {
     roomingListId: integer("rooming_list_id").references(
       () => roomingListsTable.roomingListId,
+      { onDelete: "cascade", onUpdate: "cascade" },
     ),
-    bookingId: integer("booking_id").references(() => bookingsTable.bookingId),
+    bookingId: integer("booking_id").references(() => bookingsTable.bookingId, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
   },
   (table) => [primaryKey({ columns: [table.roomingListId, table.bookingId] })],
 );

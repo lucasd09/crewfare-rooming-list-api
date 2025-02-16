@@ -28,5 +28,5 @@ export class CreateRoomingListDto {
 
   @IsString()
   @IsNotEmpty()
-  agreementType: string;
+  agreement_type: string;
 }

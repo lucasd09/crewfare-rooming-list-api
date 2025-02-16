@@ -49,4 +49,9 @@ export class BookingsController {
   remove(@Param("id") data: number) {
     return this.bookingsService.remove(data);
   }
+
+  @Post("deleteBulk")
+  async deleteRoomingLists(@Body() ids: number[]) {
+    return this.bookingsService.removeBulk(ids);
+  }
 }

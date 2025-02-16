@@ -4,7 +4,8 @@ import { UpdateRoomingListDto } from "./dto/update-rooming-list.dto";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { DATABASE_CONNECTION } from "src/database/database-connection";
 import * as schema from "../database/schemas";
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
+import { RoomingList } from "./entities/rooming-list.entity";
 
 @Injectable()
 export class RoomingListsService {
@@ -13,8 +14,8 @@ export class RoomingListsService {
     private readonly db: NodePgDatabase<typeof schema>,
   ) {}
 
-  create(data: CreateRoomingListDto) {
-    const createdRoomingList = this.db
+  async create(data: CreateRoomingListDto) {
+    const createdRoomingList = await this.db
       .insert(schema.roomingListsTable)
       .values(data)
       .returning();
@@ -22,8 +23,8 @@ export class RoomingListsService {
     return createdRoomingList;
   }
 
-  createBulk(data: CreateRoomingListDto[]) {
-    const createdRoomingList = this.db
+  async createBulk(data: CreateRoomingListDto[]) {
+    const createdRoomingList = await this.db
       .insert(schema.roomingListsTable)
       .values(data)
       .returning();
@@ -31,15 +32,26 @@ export class RoomingListsService {
     return createdRoomingList;
   }
 
-  findAll() {
+  async findAll() {
     const { roomingListsTable } = schema;
 
-    const data = this.db
+    const data = await this.db
       .select({
         eventId: roomingListsTable.eventId,
         eventName: roomingListsTable.eventName,
         roomingCount: sql<number>`cast(coalesce(count(${roomingListsTable.roomingListId}), 0) as int)`,
-        roomingLists: sql`coalesce(json_agg(row_to_json(rooming_list.*)), '[]'::json)`,
+        roomingLists: sql<RoomingList[]>`json_agg(
+          json_build_object(
+            'roomingListId', ${roomingListsTable.roomingListId},
+            'eventId', ${roomingListsTable.eventId},
+            'eventName', ${roomingListsTable.eventName},
+            'hotelId', ${roomingListsTable.hotelId},
+            'rfpName', ${roomingListsTable.rfpName},
+            'cutOffDate', ${roomingListsTable.cutOffDate},
+            'status', ${roomingListsTable.status},
+            'agreement_type', ${roomingListsTable.agreement_type}
+          )
+        )`,
       })
       .from(roomingListsTable)
       .groupBy(roomingListsTable.eventId, roomingListsTable.eventName)
@@ -54,8 +66,8 @@ export class RoomingListsService {
     });
   }
 
-  update(id: number, data: UpdateRoomingListDto) {
-    const updatedRoomingList = this.db
+  async update(id: number, data: UpdateRoomingListDto) {
+    const updatedRoomingList = await this.db
       .update(schema.roomingListsTable)
       .set(data)
       .where(eq(schema.roomingListsTable.roomingListId, id));
@@ -70,5 +82,14 @@ export class RoomingListsService {
       .returning();
 
     return removedRoomingList;
+  }
+
+  removeBulk(ids: number[]) {
+    const removedRoomingLists = this.db
+      .delete(schema.roomingListsTable)
+      .where(inArray(schema.roomingListsTable.roomingListId, ids))
+      .returning();
+
+    return removedRoomingLists;
   }
 }

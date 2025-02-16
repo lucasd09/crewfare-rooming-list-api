@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body } from "@nestjs/common";
 import { RoomingListBookingService } from "./rooming-list-booking.service";
 import { CreateRoomingListBookingDto } from "./dto/create-rooming-list-booking.dto";
 
-@Controller("rooming-list-booking")
+@Controller("roomingListBooking")
 export class RoomingListBookingController {
   constructor(
     private readonly roomingListBookingService: RoomingListBookingService,
