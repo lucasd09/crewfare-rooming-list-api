@@ -49,7 +49,7 @@ export class RoomingListsService {
             'rfpName', ${roomingListsTable.rfpName},
             'cutOffDate', ${roomingListsTable.cutOffDate},
             'status', ${roomingListsTable.status},
-            'agreement_type', ${roomingListsTable.agreement_type}
+            'agreementType', ${roomingListsTable.agreement_type}
           )
         )`,
       })
