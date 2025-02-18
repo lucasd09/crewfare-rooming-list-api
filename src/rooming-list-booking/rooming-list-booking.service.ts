@@ -1,19 +1,19 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { CreateRoomingListBookingDto } from "./dto/create-rooming-list-booking.dto";
-import * as schema from "../database/schemas";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
-import { DATABASE_CONNECTION } from "src/database/database-connection";
+import { DATABASE_CONNECTION } from "../database/connection";
+import { roomingListBooking } from "../database/schemas";
+import { Database } from "../database/types";
 
 @Injectable()
 export class RoomingListBookingService {
   constructor(
     @Inject(DATABASE_CONNECTION)
-    private readonly db: NodePgDatabase<typeof schema>,
+    private readonly db: Database,
   ) {}
 
   create(data: CreateRoomingListBookingDto) {
     const createdRoomingListBooking = this.db
-      .insert(schema.roomingListBooking)
+      .insert(roomingListBooking)
       .values(data)
       .returning();
 
@@ -22,7 +22,7 @@ export class RoomingListBookingService {
 
   createBulk(data: CreateRoomingListBookingDto[]) {
     const createdRoomingListBooking = this.db
-      .insert(schema.roomingListBooking)
+      .insert(roomingListBooking)
       .values(data)
       .returning();
 

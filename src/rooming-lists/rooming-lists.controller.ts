@@ -1,15 +1,6 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from "@nestjs/common";
+import { Controller, Get, Post, Body, Param, Delete } from "@nestjs/common";
 import { RoomingListsService } from "./rooming-lists.service";
 import { CreateRoomingListDto } from "./dto/create-rooming-list.dto";
-import { UpdateRoomingListDto } from "./dto/update-rooming-list.dto";
 
 @Controller("roomingLists")
 export class RoomingListsController {
@@ -33,14 +24,6 @@ export class RoomingListsController {
   @Get(":id")
   findOne(@Param("id") id: string) {
     return this.roomingListsService.findOne(+id);
-  }
-
-  @Patch(":id")
-  update(
-    @Param("id") id: string,
-    @Body() updateRoomingListDto: UpdateRoomingListDto,
-  ) {
-    return this.roomingListsService.update(+id, updateRoomingListDto);
   }
 
   @Delete(":id")

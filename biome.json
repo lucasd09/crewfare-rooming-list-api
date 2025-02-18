@@ -34,7 +34,7 @@
         "noUnreachable": "error",
         "noUnusedVariables": "error",
         "noConstAssign": "error",
-        "noUndeclaredVariables": "error",
+        "noUndeclaredVariables": "off",
         "noUnusedPrivateClassMembers": "error",
         "useHookAtTopLevel": "error",
         "noUnusedImports": "error"

@@ -1,22 +1,25 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { CreateBookingDto } from "./dto/create-booking.dto";
-import { UpdateBookingDto } from "./dto/update-booking.dto";
-import { DATABASE_CONNECTION } from "src/database/database-connection";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
-import * as schema from "../database/schemas";
+import type { CreateBookingDto } from "./dto/create-booking.dto";
+import { DATABASE_CONNECTION } from "../database/connection";
 import { eq, inArray, sql } from "drizzle-orm";
-import { Booking } from "./entities/booking.entity";
+import type { Booking } from "./entities/booking.entity";
+import {
+  bookingsTable,
+  roomingListBooking,
+  roomingListsTable,
+} from "../database/schemas";
+import type { Database } from "../database/types";
 
 @Injectable()
 export class BookingsService {
   constructor(
     @Inject(DATABASE_CONNECTION)
-    private readonly db: NodePgDatabase<typeof schema>,
+    private readonly db: Database,
   ) {}
 
   async create(data: CreateBookingDto) {
     const createdBooking = await this.db
-      .insert(schema.bookingsTable)
+      .insert(bookingsTable)
       .values(data)
       .returning();
 
@@ -25,7 +28,7 @@ export class BookingsService {
 
   async createBulk(data: CreateBookingDto[]) {
     const createdBookings = await this.db
-      .insert(schema.bookingsTable)
+      .insert(bookingsTable)
       .values(data)
       .returning();
 
@@ -45,8 +48,6 @@ export class BookingsService {
   }
 
   async findByRoomingListId(id: number) {
-    const { bookingsTable, roomingListBooking, roomingListsTable } = schema;
-
     const [data] = await this.db
       .select({
         minDate: sql<string>`MIN(${bookingsTable.checkInDate})`,
@@ -79,30 +80,11 @@ export class BookingsService {
     return data;
   }
 
-  async update(id: number, data: UpdateBookingDto) {
-    const updatedBooking = await this.db
-      .update(schema.bookingsTable)
-      .set(data)
-      .where(eq(schema.bookingsTable.bookingId, id));
-
-    return updatedBooking;
-  }
-
   remove(id: number) {
-    const removedBooking = this.db
-      .delete(schema.bookingsTable)
-      .where(eq(schema.bookingsTable.bookingId, id))
-      .returning();
-
-    return removedBooking;
+    this.db.delete(bookingsTable).where(eq(bookingsTable.bookingId, id));
   }
 
   removeBulk(ids: number[]) {
-    const removedBooking = this.db
-      .delete(schema.bookingsTable)
-      .where(inArray(schema.bookingsTable.bookingId, ids))
-      .returning();
-
-    return removedBooking;
+    this.db.delete(bookingsTable).where(inArray(bookingsTable.bookingId, ids));
   }
 }
