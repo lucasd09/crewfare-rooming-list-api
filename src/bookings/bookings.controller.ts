@@ -5,7 +5,6 @@ import {
   Body,
   Param,
   Delete,
-  HttpCode,
   Patch,
 } from "@nestjs/common";
 import { BookingsService } from "./bookings.service";
@@ -47,13 +46,11 @@ export class BookingsController {
   }
 
   @Delete(":id")
-  @HttpCode(204)
   remove(@Param("id") data: number) {
     return this.bookingsService.remove(data);
   }
 
   @Post("deleteBulk")
-  @HttpCode(204)
   async deleteRoomingLists(@Body() ids: number[]) {
     return this.bookingsService.removeBulk(ids);
   }

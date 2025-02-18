@@ -2,7 +2,6 @@ import { DATABASE_CONNECTION } from "../database/connection";
 import { RoomingListsService } from "./rooming-lists.service";
 import { Test } from "@nestjs/testing";
 import { CreateRoomingListDto } from "./dto/create-rooming-list.dto";
-import { eq, inArray } from "drizzle-orm";
 import { roomingListsTable } from "../database/schemas";
 
 describe("Rooming Lists Service", () => {
@@ -44,6 +43,7 @@ describe("Rooming Lists Service", () => {
     returning: jest.fn(),
     query: {
       roomingListsTable: {
+        findMany: jest.fn().mockReturnValue(mockSelectResult[0].roomingLists),
         findFirst: jest
           .fn()
           .mockReturnValue(mockSelectResult[0].roomingLists[0]),
@@ -65,8 +65,11 @@ describe("Rooming Lists Service", () => {
         .fn()
         .mockResolvedValue(mockSelectResult[0].roomingLists[0]),
     })),
+    delete: jest.fn().mockImplementation(() => ({
+      where: jest.fn().mockReturnThis(),
+      returning: jest.fn().mockReturnValue([1]),
+    })),
     where: jest.fn(),
-    delete: jest.fn().mockReturnThis(),
     inArray: jest.fn().mockReturnThis(),
   };
 
@@ -138,10 +141,16 @@ describe("Rooming Lists Service", () => {
     expect(result).toEqual(dto);
   });
 
-  it("should find all bookings grouped by event", async () => {
-    const result = await roomingListService.findAll();
+  it("should find all rooming lists grouped by event", async () => {
+    const result = await roomingListService.findListData();
 
     expect(result).toEqual(mockSelectResult);
+  });
+
+  it("should find all rooming lists", async () => {
+    const result = await roomingListService.findAll();
+
+    expect(result).toEqual(mockSelectResult[0].roomingLists);
   });
 
   it("should find a rooming list by ID", async () => {
@@ -164,22 +173,21 @@ describe("Rooming Lists Service", () => {
   });
 
   it("should remove a rooming list", async () => {
-    await roomingListService.remove(1);
+    mockDb.returning.mockReturnValue([1]);
+    const result = await roomingListService.remove(1);
 
     expect(mockDb.delete).toHaveBeenCalledWith(roomingListsTable);
-    expect(mockDb.where).toHaveBeenCalledWith(
-      eq(roomingListsTable.roomingListId, 1),
-    );
+    expect(result).toEqual([1]);
   });
 
   it("should remove multiple rooming lists (bulk)", async () => {
     const ids = [1, 2];
 
-    await roomingListService.removeBulk(ids);
+    mockDb.returning.mockReturnValue(ids);
+
+    const result = await roomingListService.removeBulk(ids);
 
     expect(mockDb.delete).toHaveBeenCalledWith(roomingListsTable);
-    expect(mockDb.where).toHaveBeenCalledWith(
-      inArray(roomingListsTable.roomingListId, ids),
-    );
+    expect(result).toEqual(ids);
   });
 });

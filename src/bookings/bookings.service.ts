@@ -92,11 +92,25 @@ export class BookingsService {
     return updatedBooking;
   }
 
-  remove(id: number) {
-    this.db.delete(bookingsTable).where(eq(bookingsTable.bookingId, id));
+  async remove(id: number) {
+    const result = await this.db
+      .delete(bookingsTable)
+      .where(eq(bookingsTable.bookingId, id))
+      .returning();
+
+    const data = result.map((item) => item.bookingId);
+
+    return data;
   }
 
-  removeBulk(ids: number[]) {
-    this.db.delete(bookingsTable).where(inArray(bookingsTable.bookingId, ids));
+  async removeBulk(ids: number[]) {
+    const result = await this.db
+      .delete(bookingsTable)
+      .where(inArray(bookingsTable.bookingId, ids))
+      .returning();
+
+    const data = result.map((item) => item.bookingId);
+
+    return data;
   }
 }

@@ -33,6 +33,10 @@ export class RoomingListsService {
   }
 
   async findAll() {
+    return this.db.query.roomingListsTable.findMany();
+  }
+
+  async findListData() {
     const data = await this.db
       .select({
         eventId: roomingListsTable.eventId,
@@ -48,7 +52,7 @@ export class RoomingListsService {
             'cutOffDate', ${roomingListsTable.cutOffDate},
             'status', ${roomingListsTable.status},
             'agreementType', ${roomingListsTable.agreement_type}
-          )
+          ) 
         )`,
       })
       .from(roomingListsTable)
@@ -75,15 +79,24 @@ export class RoomingListsService {
     return updatedRoomingList;
   }
 
-  remove(id: number) {
-    this.db
+  async remove(id: number) {
+    const result = await this.db
       .delete(roomingListsTable)
-      .where(eq(roomingListsTable.roomingListId, id));
+      .where(eq(roomingListsTable.roomingListId, id))
+      .returning();
+
+    const data = result.map((item) => item.roomingListId);
+    return data;
   }
 
-  removeBulk(ids: number[]) {
-    this.db
+  async removeBulk(ids: number[]) {
+    const result = await this.db
       .delete(roomingListsTable)
-      .where(inArray(roomingListsTable.roomingListId, ids));
+      .where(inArray(roomingListsTable.roomingListId, ids))
+      .returning();
+
+    const data = result.map((item) => item.roomingListId);
+
+    return data;
   }
 }

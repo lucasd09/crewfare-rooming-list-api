@@ -5,7 +5,6 @@ import {
   Body,
   Param,
   Delete,
-  HttpCode,
   Patch,
 } from "@nestjs/common";
 import { RoomingListsService } from "./rooming-lists.service";
@@ -24,6 +23,11 @@ export class RoomingListsController {
   @Post("bulk")
   createBulk(@Body() data: CreateRoomingListDto[]) {
     return this.roomingListsService.createBulk(data);
+  }
+
+  @Get("getListData")
+  findListData() {
+    return this.roomingListsService.findListData();
   }
 
   @Get()
@@ -45,13 +49,11 @@ export class RoomingListsController {
   }
 
   @Delete(":id")
-  @HttpCode(204)
   remove(@Param("id") id: string) {
     return this.roomingListsService.remove(+id);
   }
 
   @Post("deleteBulk")
-  @HttpCode(204)
   async deleteRoomingLists(@Body() ids: number[]) {
     return this.roomingListsService.removeBulk(ids);
   }
