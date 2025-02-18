@@ -4,7 +4,6 @@ import { ConfigModule } from "@nestjs/config";
 import { BookingsModule } from "./bookings/bookings.module";
 import { RoomingListsModule } from "./rooming-lists/rooming-lists.module";
 import { RoomingListBookingModule } from "./rooming-list-booking/rooming-list-booking.module";
-import { CatsModule } from './cats/cats.module';
 
 @Module({
   imports: [
@@ -13,7 +12,6 @@ import { CatsModule } from './cats/cats.module';
     BookingsModule,
     RoomingListsModule,
     RoomingListBookingModule,
-    CatsModule,
   ],
   controllers: [],
 })

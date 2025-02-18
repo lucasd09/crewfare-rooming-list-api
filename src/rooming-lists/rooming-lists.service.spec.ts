@@ -2,9 +2,41 @@ import { DATABASE_CONNECTION } from "../database/connection";
 import { RoomingListsService } from "./rooming-lists.service";
 import { Test } from "@nestjs/testing";
 import { CreateRoomingListDto } from "./dto/create-rooming-list.dto";
+import { eq, inArray } from "drizzle-orm";
+import { roomingListsTable } from "../database/schemas";
 
 describe("Rooming Lists Service", () => {
   let roomingListService: RoomingListsService;
+
+  const mockSelectResult = [
+    {
+      eventId: 1,
+      eventName: "string",
+      roomingCount: 0,
+      roomingLists: [
+        {
+          roomingListId: 1,
+          eventId: 1,
+          eventName: "string",
+          hotelId: 1,
+          rfpName: "string",
+          cutOffDate: "string",
+          status: "string",
+          agreementType: "string",
+        },
+        {
+          roomingListId: 1,
+          eventId: 1,
+          eventName: "string",
+          hotelId: 1,
+          rfpName: "string",
+          cutOffDate: "string",
+          status: "string",
+          agreementType: "string",
+        },
+      ],
+    },
+  ];
 
   const mockDb = {
     insert: jest.fn().mockReturnThis(),
@@ -12,21 +44,19 @@ describe("Rooming Lists Service", () => {
     returning: jest.fn(),
     query: {
       roomingListsTable: {
-        findMany: jest
+        findFirst: jest
           .fn()
-          .mockReturnValue([
-            { roomingListId: 1, eventId: 1, eventName: "Ultra Miami" },
-          ]),
-        findFirst: jest.fn().mockReturnValue({
-          roomingListId: 1,
-          eventId: 1,
-          eventName: "Ultra Miami",
-        }),
+          .mockReturnValue(mockSelectResult[0].roomingLists[0]),
       },
     },
-    select: jest.fn().mockReturnThis(),
-    update: jest.fn().mockReturnThis(),
-    set: jest.fn().mockReturnThis(),
+    select: jest.fn().mockImplementation(() => ({
+      from: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      execute: jest.fn().mockResolvedValue(mockSelectResult),
+    })),
     where: jest.fn(),
     delete: jest.fn().mockReturnThis(),
     inArray: jest.fn().mockReturnThis(),
@@ -103,10 +133,7 @@ describe("Rooming Lists Service", () => {
   it("should find all bookings grouped by event", async () => {
     const result = await roomingListService.findAll();
 
-    expect(mockDb.query.roomingListsTable.findMany).toHaveBeenCalled();
-    expect(result).toEqual([
-      { roomingListId: 1, eventId: 1, eventName: "Ultra Miami" },
-    ]);
+    expect(result).toEqual(mockSelectResult);
   });
 
   it("should find a rooming list by ID", async () => {
@@ -115,10 +142,26 @@ describe("Rooming Lists Service", () => {
     expect(mockDb.query.roomingListsTable.findFirst).toHaveBeenCalledWith({
       where: expect.any(Function),
     });
-    expect(result).toEqual({
-      roomingListId: 1,
-      eventId: 1,
-      eventName: "Ultra Miami",
-    });
+    expect(result).toEqual(mockSelectResult[0].roomingLists[0]);
+  });
+
+  it("should remove a rooming list", async () => {
+    await roomingListService.remove(1);
+
+    expect(mockDb.delete).toHaveBeenCalledWith(roomingListsTable);
+    expect(mockDb.where).toHaveBeenCalledWith(
+      eq(roomingListsTable.roomingListId, 1),
+    );
+  });
+
+  it("should remove multiple rooming lists (bulk)", async () => {
+    const ids = [1, 2];
+
+    await roomingListService.removeBulk(ids);
+
+    expect(mockDb.delete).toHaveBeenCalledWith(roomingListsTable);
+    expect(mockDb.where).toHaveBeenCalledWith(
+      inArray(roomingListsTable.roomingListId, ids),
+    );
   });
 });

@@ -5,8 +5,34 @@ import type { CreateBookingDto } from "./dto/create-booking.dto";
 import { bookingsTable } from "../database/schemas";
 import { eq, inArray } from "drizzle-orm";
 
-describe("BookingsService", () => {
+describe("Bookings Service", () => {
   let bookingsService: BookingsService;
+
+  const mockSelectResult = {
+    minDate: "2025-02-01",
+    maxDate: "2025-02-10",
+    bookingsCount: 3,
+    bookings: [
+      {
+        bookingId: 1,
+        guestName: "John Doe",
+        guestPhoneNumber: "123456789",
+        checkInDate: "2025-02-01",
+        checkOutDate: "2025-02-05",
+        hotelId: 101,
+        eventId: 202,
+      },
+      {
+        bookingId: 2,
+        guestName: "Jane Smith",
+        guestPhoneNumber: "987654321",
+        checkInDate: "2025-02-02",
+        checkOutDate: "2025-02-06",
+        hotelId: 102,
+        eventId: 203,
+      },
+    ],
+  };
 
   const mockDb = {
     insert: jest.fn().mockReturnThis(),
@@ -14,17 +40,17 @@ describe("BookingsService", () => {
     returning: jest.fn(),
     query: {
       bookingsTable: {
-        findMany: jest
-          .fn()
-          .mockReturnValue([{ bookingId: 1, guestName: "John Doe" }]),
-        findFirst: jest
-          .fn()
-          .mockReturnValue({ bookingId: 1, guestName: "John Doe" }),
+        findMany: jest.fn().mockReturnValue(mockSelectResult.bookings),
+        findFirst: jest.fn().mockReturnValue(mockSelectResult.bookings[0]),
       },
     },
-    select: jest.fn().mockReturnThis(),
-    update: jest.fn().mockReturnThis(),
-    set: jest.fn().mockReturnThis(),
+    select: jest.fn().mockImplementation(() => ({
+      from: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      execute: jest.fn().mockResolvedValue(mockSelectResult),
+    })),
     where: jest.fn(),
     delete: jest.fn().mockReturnThis(),
     inArray: jest.fn().mockReturnThis(),
@@ -111,7 +137,7 @@ describe("BookingsService", () => {
     const result = await bookingsService.findAll();
 
     expect(mockDb.query.bookingsTable.findMany).toHaveBeenCalled();
-    expect(result).toEqual([{ bookingId: 1, guestName: "John Doe" }]);
+    expect(result).toEqual(mockSelectResult.bookings);
   });
 
   it("should find a booking by ID", async () => {
@@ -120,51 +146,13 @@ describe("BookingsService", () => {
     expect(mockDb.query.bookingsTable.findFirst).toHaveBeenCalledWith({
       where: expect.any(Function),
     });
-    expect(result).toEqual({ bookingId: 1, guestName: "John Doe" });
+    expect(result).toEqual(mockSelectResult.bookings[0]);
   });
 
   it("should find bookings by rooming list id", async () => {
-    const roomingListId = 1;
+    const result = await bookingsService.findByRoomingListId(1);
 
-    const mockResult = {
-      minDate: "2025-02-01",
-      maxDate: "2025-02-10",
-      bookingsCount: 3,
-      bookings: [
-        {
-          bookingId: 1,
-          hotelId: 101,
-          eventId: 202,
-          guestName: "John Doe",
-          guestPhoneNumber: "123456789",
-          checkInDate: "2025-02-01",
-          checkOutDate: "2025-02-05",
-        },
-        {
-          bookingId: 2,
-          hotelId: 102,
-          eventId: 203,
-          guestName: "Jane Smith",
-          guestPhoneNumber: "987654321",
-          checkInDate: "2025-02-02",
-          checkOutDate: "2025-02-06",
-        },
-      ],
-    };
-
-    const mockSelect = {
-      from: jest.fn().mockReturnThis(),
-      leftJoin: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      groupBy: jest.fn().mockReturnThis(),
-      select: jest.fn().mockResolvedValue(mockResult),
-    };
-
-    mockDb.select = jest.fn().mockReturnValue(mockSelect);
-
-    const result = await bookingsService.findByRoomingListId(roomingListId);
-
-    expect(result).toEqual(mockResult);
+    expect(result).toEqual(mockSelectResult);
   });
 
   it("should remove a booking", async () => {

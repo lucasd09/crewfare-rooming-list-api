@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Delete } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  HttpCode,
+} from "@nestjs/common";
 import { RoomingListsService } from "./rooming-lists.service";
 import { CreateRoomingListDto } from "./dto/create-rooming-list.dto";
 
@@ -27,11 +35,13 @@ export class RoomingListsController {
   }
 
   @Delete(":id")
+  @HttpCode(204)
   remove(@Param("id") id: string) {
     return this.roomingListsService.remove(+id);
   }
 
   @Post("deleteBulk")
+  @HttpCode(204)
   async deleteRoomingLists(@Body() ids: number[]) {
     return this.roomingListsService.removeBulk(ids);
   }

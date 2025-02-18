@@ -52,7 +52,8 @@ export class RoomingListsService {
       })
       .from(roomingListsTable)
       .groupBy(roomingListsTable.eventId, roomingListsTable.eventName)
-      .orderBy(roomingListsTable.eventId);
+      .orderBy(roomingListsTable.eventId)
+      .execute();
 
     return data;
   }
@@ -63,47 +64,15 @@ export class RoomingListsService {
     });
   }
 
-  async findListData() {
-    const data = await this.db
-      .select({
-        eventId: roomingListsTable.eventId,
-        eventName: roomingListsTable.eventName,
-        roomingCount: sql<number>`cast(coalesce(count(${roomingListsTable.roomingListId}), 0) as int)`,
-        roomingLists: sql<RoomingList[]>`json_agg(
-          json_build_object(
-            'roomingListId', ${roomingListsTable.roomingListId},
-            'eventId', ${roomingListsTable.eventId},
-            'eventName', ${roomingListsTable.eventName},
-            'hotelId', ${roomingListsTable.hotelId},
-            'rfpName', ${roomingListsTable.rfpName},
-            'cutOffDate', ${roomingListsTable.cutOffDate},
-            'status', ${roomingListsTable.status},
-            'agreementType', ${roomingListsTable.agreement_type}
-          )
-        )`,
-      })
-      .from(roomingListsTable)
-      .groupBy(roomingListsTable.eventId, roomingListsTable.eventName)
-      .orderBy(roomingListsTable.eventId);
-
-    return data;
-  }
-
   remove(id: number) {
-    const removedRoomingList = this.db
+    this.db
       .delete(roomingListsTable)
-      .where(eq(roomingListsTable.roomingListId, id))
-      .returning();
-
-    return removedRoomingList;
+      .where(eq(roomingListsTable.roomingListId, id));
   }
 
   removeBulk(ids: number[]) {
-    const removedRoomingLists = this.db
+    this.db
       .delete(roomingListsTable)
-      .where(inArray(roomingListsTable.roomingListId, ids))
-      .returning();
-
-    return removedRoomingLists;
+      .where(inArray(roomingListsTable.roomingListId, ids));
   }
 }

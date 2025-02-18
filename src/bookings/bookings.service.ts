@@ -48,7 +48,7 @@ export class BookingsService {
   }
 
   async findByRoomingListId(id: number) {
-    const [data] = await this.db
+    const data = await this.db
       .select({
         minDate: sql<string>`MIN(${bookingsTable.checkInDate})`,
         maxDate: sql<string>`MAX(${bookingsTable.checkOutDate})`,
@@ -75,7 +75,8 @@ export class BookingsService {
         eq(roomingListsTable.roomingListId, roomingListBooking.roomingListId),
       )
       .where(eq(roomingListsTable.roomingListId, id))
-      .groupBy(roomingListsTable.roomingListId);
+      .groupBy(roomingListsTable.roomingListId)
+      .execute();
 
     return data;
   }
