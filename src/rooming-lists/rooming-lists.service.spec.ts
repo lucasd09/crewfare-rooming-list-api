@@ -57,6 +57,14 @@ describe("Rooming Lists Service", () => {
       orderBy: jest.fn().mockReturnThis(),
       execute: jest.fn().mockResolvedValue(mockSelectResult),
     })),
+
+    update: jest.fn().mockImplementation(() => ({
+      set: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      returning: jest
+        .fn()
+        .mockResolvedValue(mockSelectResult[0].roomingLists[0]),
+    })),
     where: jest.fn(),
     delete: jest.fn().mockReturnThis(),
     inArray: jest.fn().mockReturnThis(),
@@ -143,6 +151,16 @@ describe("Rooming Lists Service", () => {
       where: expect.any(Function),
     });
     expect(result).toEqual(mockSelectResult[0].roomingLists[0]);
+  });
+
+  it("should update a rooming list", async () => {
+    const dto = mockSelectResult[0].roomingLists[0];
+
+    mockDb.returning.mockReturnValue(dto);
+
+    const result = await roomingListService.update(1, dto);
+
+    expect(result).toEqual(dto);
   });
 
   it("should remove a rooming list", async () => {

@@ -5,6 +5,7 @@ import { roomingListsTable } from "../database/schemas";
 import { eq, inArray, sql } from "drizzle-orm";
 import type { RoomingList } from "./entities/rooming-list.entity";
 import type { Database } from "../database/types";
+import { UpdateRoomingListDto } from "./dto/update-rooming-list.dto";
 
 @Injectable()
 export class RoomingListsService {
@@ -62,6 +63,16 @@ export class RoomingListsService {
     return this.db.query.roomingListsTable.findFirst({
       where: (roomingLists, { eq }) => eq(roomingLists.roomingListId, id),
     });
+  }
+
+  async update(id: number, data: UpdateRoomingListDto) {
+    const updatedRoomingList = await this.db
+      .update(roomingListsTable)
+      .set(data)
+      .where(eq(roomingListsTable.roomingListId, id))
+      .returning();
+
+    return updatedRoomingList;
   }
 
   remove(id: number) {

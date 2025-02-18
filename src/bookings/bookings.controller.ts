@@ -6,9 +6,11 @@ import {
   Param,
   Delete,
   HttpCode,
+  Patch,
 } from "@nestjs/common";
 import { BookingsService } from "./bookings.service";
 import { CreateBookingDto } from "./dto/create-booking.dto";
+import { UpdateBookingDto } from "./dto/update-booking.dto";
 
 @Controller("bookings")
 export class BookingsController {
@@ -37,6 +39,11 @@ export class BookingsController {
   @Get("/byRoomingListId/:id")
   findByRoomingListId(@Param("id") id: string) {
     return this.bookingsService.findByRoomingListId(+id);
+  }
+
+  @Patch(":id")
+  update(@Param("id") id: string, @Body() data: UpdateBookingDto) {
+    return this.bookingsService.update(+id, data);
   }
 
   @Delete(":id")

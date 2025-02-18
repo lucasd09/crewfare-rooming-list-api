@@ -49,7 +49,12 @@ describe("Bookings Service", () => {
       leftJoin: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       groupBy: jest.fn().mockReturnThis(),
-      execute: jest.fn().mockResolvedValue(mockSelectResult),
+      execute: jest.fn().mockResolvedValue([mockSelectResult]),
+    })),
+    update: jest.fn().mockImplementation(() => ({
+      set: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      returning: jest.fn().mockResolvedValue(mockSelectResult.bookings[0]),
     })),
     where: jest.fn(),
     delete: jest.fn().mockReturnThis(),
@@ -153,6 +158,16 @@ describe("Bookings Service", () => {
     const result = await bookingsService.findByRoomingListId(1);
 
     expect(result).toEqual(mockSelectResult);
+  });
+
+  it("should update a booking", async () => {
+    const dto = mockSelectResult.bookings[0];
+
+    mockDb.returning.mockReturnValue(dto);
+
+    const result = await bookingsService.update(1, dto);
+
+    expect(result).toEqual(dto);
   });
 
   it("should remove a booking", async () => {

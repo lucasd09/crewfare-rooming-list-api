@@ -9,6 +9,7 @@ import {
   roomingListsTable,
 } from "../database/schemas";
 import type { Database } from "../database/types";
+import { UpdateBookingDto } from "./dto/update-booking.dto";
 
 @Injectable()
 export class BookingsService {
@@ -78,7 +79,17 @@ export class BookingsService {
       .groupBy(roomingListsTable.roomingListId)
       .execute();
 
-    return data;
+    return data[0];
+  }
+
+  async update(id: number, data: UpdateBookingDto) {
+    const updatedBooking = await this.db
+      .update(bookingsTable)
+      .set(data)
+      .where(eq(bookingsTable.bookingId, id))
+      .returning();
+
+    return updatedBooking;
   }
 
   remove(id: number) {
