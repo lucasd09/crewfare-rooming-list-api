@@ -37,7 +37,7 @@ export class RoomingList {
   cutOffDate: string;
 
   @ApiProperty({
-    example: "Confirmed",
+    example: "Received",
     description: "Status of the rooming list",
   })
   status: string;

@@ -39,7 +39,7 @@ export class CreateRoomingListDto {
   cutOffDate: string;
 
   @ApiProperty({
-    example: "Confirmed",
+    example: "Received",
     description: "Status of the rooming list",
   })
   @IsString()
@@ -47,7 +47,7 @@ export class CreateRoomingListDto {
   status: string;
 
   @ApiProperty({
-    example: "Corporate",
+    example: "Leisure",
     description: "Type of agreement for the rooming list",
   })
   @IsString()
