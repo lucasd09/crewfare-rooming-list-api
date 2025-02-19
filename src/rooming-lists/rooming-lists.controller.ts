@@ -10,6 +10,8 @@ import {
 import { RoomingListsService } from "./rooming-lists.service";
 import { CreateRoomingListDto } from "./dto/create-rooming-list.dto";
 import { UpdateRoomingListDto } from "./dto/update-rooming-list.dto";
+import { ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { RoomingList } from "./entities/rooming-list.entity";
 
 @Controller("roomingLists")
 export class RoomingListsController {
@@ -21,6 +23,20 @@ export class RoomingListsController {
   }
 
   @Post("bulk")
+  @ApiOperation({
+    summary: "Create multiple rooming lists in bulk",
+    description:
+      "Creates multiple rooming lists from an array of rooming list DTOs.",
+  })
+  @ApiResponse({
+    status: 201,
+    description: "The rooming lists have been successfully created.",
+    type: [RoomingList],
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid input",
+  })
   createBulk(@Body() data: CreateRoomingListDto[]) {
     return this.roomingListsService.createBulk(data);
   }
