@@ -73,10 +73,6 @@ or check the live version on [https://crewfare-rooming-list-api.onrender.com/api
 
 ![Bookings listing](./public/bookings-listing.png)
 
-### See agreement as PDF tooltip ###
-
-![See agreement as PDF tooltip](./public/see-agreement-pdf.png)
-
 ## Features ##
 
 Here're some of the project's best features:
