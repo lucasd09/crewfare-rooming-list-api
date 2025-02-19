@@ -3,7 +3,6 @@ import { BookingsService } from "./bookings.service";
 import { DATABASE_CONNECTION } from "../database/connection";
 import type { CreateBookingDto } from "./dto/create-booking.dto";
 import { bookingsTable } from "../database/schemas";
-import { eq, inArray } from "drizzle-orm";
 
 describe("Bookings Service", () => {
   let bookingsService: BookingsService;
@@ -57,7 +56,10 @@ describe("Bookings Service", () => {
       returning: jest.fn().mockResolvedValue(mockSelectResult.bookings[0]),
     })),
     where: jest.fn(),
-    delete: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockImplementation(() => ({
+      where: jest.fn().mockReturnThis(),
+      returning: jest.fn().mockResolvedValue(mockSelectResult.bookings[0]),
+    })),
     inArray: jest.fn().mockReturnThis(),
   };
 
@@ -171,20 +173,23 @@ describe("Bookings Service", () => {
   });
 
   it("should remove a booking", async () => {
-    await bookingsService.remove(1);
+    const result = await bookingsService.remove(1);
 
-    expect(mockDb.delete).toHaveBeenCalledWith(bookingsTable);
-    expect(mockDb.where).toHaveBeenCalledWith(eq(bookingsTable.bookingId, 1));
+    expect(result).toEqual(mockSelectResult.bookings[0]);
   });
 
   it("should remove multiple bookings (bulk)", async () => {
     const ids = [1, 2];
 
-    await bookingsService.removeBulk(ids);
+    mockDb.delete.mockImplementation(() => ({
+      where: jest.fn().mockImplementation(() => ({
+        returning: jest.fn().mockReturnValue(mockSelectResult.bookings),
+      })),
+    }));
+
+    const result = await bookingsService.removeBulk(ids);
 
     expect(mockDb.delete).toHaveBeenCalledWith(bookingsTable);
-    expect(mockDb.where).toHaveBeenCalledWith(
-      inArray(bookingsTable.bookingId, ids),
-    );
+    expect(result).toEqual(ids);
   });
 });

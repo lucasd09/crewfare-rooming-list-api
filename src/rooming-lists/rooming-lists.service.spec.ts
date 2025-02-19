@@ -24,7 +24,7 @@ describe("Rooming Lists Service", () => {
           agreementType: "string",
         },
         {
-          roomingListId: 1,
+          roomingListId: 2,
           eventId: 1,
           eventName: "string",
           hotelId: 1,
@@ -67,7 +67,9 @@ describe("Rooming Lists Service", () => {
     })),
     delete: jest.fn().mockImplementation(() => ({
       where: jest.fn().mockReturnThis(),
-      returning: jest.fn().mockReturnValue([1]),
+      returning: jest
+        .fn()
+        .mockResolvedValue(mockSelectResult[0].roomingLists[0]),
     })),
     where: jest.fn(),
     inArray: jest.fn().mockReturnThis(),
@@ -173,17 +175,20 @@ describe("Rooming Lists Service", () => {
   });
 
   it("should remove a rooming list", async () => {
-    mockDb.returning.mockReturnValue([1]);
     const result = await roomingListService.remove(1);
 
     expect(mockDb.delete).toHaveBeenCalledWith(roomingListsTable);
-    expect(result).toEqual([1]);
+    expect(result).toEqual(mockSelectResult[0].roomingLists[0]);
   });
 
   it("should remove multiple rooming lists (bulk)", async () => {
     const ids = [1, 2];
 
-    mockDb.returning.mockReturnValue(ids);
+    mockDb.delete.mockImplementation(() => ({
+      where: jest.fn().mockImplementation(() => ({
+        returning: jest.fn().mockReturnValue(mockSelectResult[0].roomingLists),
+      })),
+    }));
 
     const result = await roomingListService.removeBulk(ids);
 

@@ -80,12 +80,11 @@ export class RoomingListsService {
   }
 
   async remove(id: number) {
-    const result = await this.db
+    const data = await this.db
       .delete(roomingListsTable)
       .where(eq(roomingListsTable.roomingListId, id))
       .returning();
 
-    const data = result.map((item) => item.roomingListId);
     return data;
   }
 
