@@ -54,7 +54,7 @@ To get the project up and running:
 You can access through:
 
 ```
-http:localhost:3000/api
+http://localhost:3000/api
 ```
 
 or check the live version on [https://crewfare-rooming-list-api.onrender.com/api](https://crewfare-rooming-list-api.onrender.com/api)
