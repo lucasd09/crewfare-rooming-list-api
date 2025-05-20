@@ -2,10 +2,12 @@ import { Inject, Injectable } from "@nestjs/common";
 import type { CreateRoomingListDto } from "./dto/create-rooming-list.dto";
 import { DATABASE_CONNECTION } from "../database/connection";
 import { roomingListsTable } from "../database/schemas";
-import { eq, inArray, sql } from "drizzle-orm";
+import { eq, inArray, sql, and, or, like, ilike } from "drizzle-orm";
 import type { RoomingList } from "./entities/rooming-list.entity";
 import type { Database } from "../database/types";
 import { UpdateRoomingListDto } from "./dto/update-rooming-list.dto";
+import { FindListDataDto } from "./dto/find-list-data.dto";
+import { RoomingListGroup } from "./entities/rooming-list-group.entity";
 
 @Injectable()
 export class RoomingListsService {
@@ -36,7 +38,39 @@ export class RoomingListsService {
     return this.db.query.roomingListsTable.findMany();
   }
 
-  async findListData() {
+  async findListData(query: FindListDataDto): Promise<RoomingListGroup[]> {
+    const searchConditions = [];
+
+    if (query.search) {
+      searchConditions.push(
+        or(
+          ilike(roomingListsTable.eventName, `%${query.search}%`),
+          ilike(roomingListsTable.rfpName, `%${query.search}%`),
+          ilike(roomingListsTable.agreement_type, `%${query.search}%`)
+        )
+      );
+    }
+
+    const statusConditions = []
+
+    if (query.active === 'true') {
+      statusConditions.push(eq(roomingListsTable.status, "received"),)
+    }
+
+    if (query.closed === 'true') {
+      statusConditions.push(eq(roomingListsTable.status, "completed"),)
+    }
+
+    if (query.cancelled === 'true') {
+      statusConditions.push(eq(roomingListsTable.status, "archived"),)
+    } 
+
+    if (statusConditions.length > 0) {
+      searchConditions.push(or(...statusConditions))
+    }
+
+    const whereClause = searchConditions.length > 0 ? and(...searchConditions) : undefined
+
     const data = await this.db
       .select({
         eventId: roomingListsTable.eventId,
@@ -56,11 +90,12 @@ export class RoomingListsService {
         )`,
       })
       .from(roomingListsTable)
+      .where(whereClause)
       .groupBy(roomingListsTable.eventId, roomingListsTable.eventName)
       .orderBy(roomingListsTable.eventId)
       .execute();
 
-    return data;
+    return data as RoomingListGroup[];
   }
 
   findOne(id: number) {

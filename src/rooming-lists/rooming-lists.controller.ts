@@ -6,12 +6,15 @@ import {
   Param,
   Delete,
   Patch,
+  Query,
 } from "@nestjs/common";
 import { RoomingListsService } from "./rooming-lists.service";
 import { CreateRoomingListDto } from "./dto/create-rooming-list.dto";
 import { UpdateRoomingListDto } from "./dto/update-rooming-list.dto";
-import { ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { ApiOperation, ApiResponse, ApiQuery } from "@nestjs/swagger";
 import { RoomingList } from "./entities/rooming-list.entity";
+import { FindListDataDto } from "./dto/find-list-data.dto";
+import { RoomingListGroup } from "./entities/rooming-list-group.entity";
 
 @Controller("roomingLists")
 export class RoomingListsController {
@@ -42,8 +45,21 @@ export class RoomingListsController {
   }
 
   @Get("getListData")
-  findListData() {
-    return this.roomingListsService.findListData();
+  @ApiOperation({
+    summary: "Get rooming list data with filters",
+    description: "Retrieves rooming list data with optional filtering by search term and status",
+  })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'active', required: false, type: Boolean })
+  @ApiQuery({ name: 'closed', required: false, type: Boolean })
+  @ApiQuery({ name: 'cancelled', required: false, type: Boolean })
+  @ApiResponse({
+    status: 200,
+    description: "The successfully retrieved Rooming Lists grouped by its events",
+    type: [RoomingListGroup]
+  })
+  findListData(@Query() query: FindListDataDto): Promise<RoomingListGroup[]> {
+    return this.roomingListsService.findListData(query);
   }
 
   @Get()
