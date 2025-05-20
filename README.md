@@ -69,10 +69,6 @@ or check the live version on [https://crewfare-rooming-list-api.onrender.com/api
 
 ![Tests](./public/tests.png)
 
-### Bookings listing ###
-
-![Bookings listing](./public/bookings-listing.png)
-
 ## Features ##
 
 Here're some of the project's best features:
