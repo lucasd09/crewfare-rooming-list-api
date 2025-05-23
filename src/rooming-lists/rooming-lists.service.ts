@@ -8,6 +8,7 @@ import type { Database } from "../database/types";
 import { UpdateRoomingListDto } from "./dto/update-rooming-list.dto";
 import { FindListDataDto } from "./dto/find-list-data.dto";
 import { RoomingListGroup } from "./entities/rooming-list-group.entity";
+import { PaginatedResponseDto } from "./dto/paginated-response.dto";
 
 @Injectable()
 export class RoomingListsService {
@@ -18,7 +19,7 @@ export class RoomingListsService {
 
   async create(data: CreateRoomingListDto) {
     const createdRoomingList = await this.db
-      .insert(roomingListsTable)
+      .insert(roomingListsTable) 
       .values(data)
       .returning();
 
@@ -38,7 +39,7 @@ export class RoomingListsService {
     return this.db.query.roomingListsTable.findMany();
   }
 
-  async findListData(query: FindListDataDto): Promise<RoomingListGroup[]> {
+  async findListData(query: FindListDataDto): Promise<PaginatedResponseDto<RoomingListGroup>> {
     const searchConditions = [];
 
     if (query.search) {
@@ -53,15 +54,15 @@ export class RoomingListsService {
 
     const statusConditions = []
 
-    if (query.active === 'true') {
+    if (query.active === "true") {
       statusConditions.push(eq(roomingListsTable.status, "received"),)
     }
 
-    if (query.closed === 'true') {
+    if (query.closed === "true") {
       statusConditions.push(eq(roomingListsTable.status, "completed"),)
     }
 
-    if (query.cancelled === 'true') {
+    if (query.cancelled === "true") {
       statusConditions.push(eq(roomingListsTable.status, "archived"),)
     } 
 
@@ -69,9 +70,24 @@ export class RoomingListsService {
       searchConditions.push(or(...statusConditions))
     }
 
-    const whereClause = searchConditions.length > 0 ? and(...searchConditions) : undefined
+    const whereClause = searchConditions.length > 0 ? and(...searchConditions) : undefined;
 
-    const data = await this.db
+    const totalCount = await this.db
+      .select({
+        count: sql<number>`count(distinct ${roomingListsTable.eventId})`
+      })
+      .from(roomingListsTable)
+      .where(whereClause)
+      .execute();
+
+    const total = Number(totalCount[0].count);
+    
+    const limit = Number(query.limit) || 10;
+    const page = Number(query.page) || 1;
+
+    const offset = (page - 1) * limit;
+
+    const select = this.db
       .select({
         eventId: roomingListsTable.eventId,
         eventName: roomingListsTable.eventName,
@@ -90,12 +106,26 @@ export class RoomingListsService {
         )`,
       })
       .from(roomingListsTable)
-      .where(whereClause)
       .groupBy(roomingListsTable.eventId, roomingListsTable.eventName)
       .orderBy(roomingListsTable.eventId)
-      .execute();
+      .limit(limit)
+      .offset(offset);
 
-    return data as RoomingListGroup[];
+    const selectQuery = whereClause ? select.where(whereClause) : select;
+
+    const data = await selectQuery.execute();
+    
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      items: data as RoomingListGroup[],
+      total,
+      page,
+      limit,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrevious: page > 1
+    };
   }
 
   findOne(id: number) {
